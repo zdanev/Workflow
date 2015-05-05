@@ -5,9 +5,9 @@ using System.Linq;
 using Workflow.Interfaces;
 using Workflow.Models;
 
-namespace Workflow.Data
+namespace Workflow.Fakes
 {
-    public class Repository<T> : IRepository<T> where T : Entity
+    public class FakeRepository<T> : IRepository<T> where T : Entity
     {
         private readonly List<T> _list = new List<T>();
 

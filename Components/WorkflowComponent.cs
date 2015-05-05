@@ -5,23 +5,21 @@ using System.Linq;
 using Workflow.Interfaces;
 using Workflow.Models;
 
+using static Workflow.Tools.Tools;
+
 namespace Workflow.Components
 {
     public class WorkflowComponent : IWorkflowComponent
     {
-        private readonly IRepository<Item> _itemsRepository;
-        private readonly IRepository<History> _historyRepository; 
+        private IWorkflowUnitOfWork _uow;
 
         public IList<State> States { get; set; }
 
         public IList<Route> Routes { get; set; } 
 
-        public WorkflowComponent(
-            IRepository<Item> itemsRepository,
-            IRepository<History> historyRepository)
+        public WorkflowComponent(IWorkflowUnitOfWork uow)
         {
-            _itemsRepository = itemsRepository;
-            _historyRepository = historyRepository;
+            Require(_uow = uow, "WorkflowUnitOfWork");
 
             States = new List<State>();
             Routes = new List<Route>();
@@ -35,14 +33,14 @@ namespace Workflow.Components
             item.EntityId = entity.Id;
             item.State = state.Name;
 
-            _itemsRepository.Add(item);
+            _uow.Items.Add(item);
 
             AddHistory(item);
         }
 
         public void Action(Entity entity, string action)
         {
-            var item = _itemsRepository.Query().Single(i => i.EntityId == entity.Id);
+            var item = _uow.Items.Query().Single(i => i.EntityId == entity.Id);
             var route = Routes.Single(r => r.FromState == item.State && r.Action == action);
             var state = States.Single(s => s.Name == route.ToState);
 
@@ -50,11 +48,11 @@ namespace Workflow.Components
 
             if (state.IsFinalState)
             {
-                _itemsRepository.Delete(item);
+                _uow.Items.Delete(item);
             }
             else
             {
-                _itemsRepository.Update(item);
+                _uow.Items.Update(item);
             }
 
             AddHistory(item);
@@ -68,12 +66,12 @@ namespace Workflow.Components
             history.State = item.State;
             history.TimeStamp = DateTime.UtcNow;
 
-            _historyRepository.Add(history);
+            _uow.History.Add(history);
         }
 
         public int ItemsInState(string state)
         {
-            return _itemsRepository.Query().Count(i => i.State == state);
+            return _uow.Items.Query().Count(i => i.State == state);
         }
     }
 }
