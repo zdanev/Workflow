@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using Z.Data.Models;
@@ -13,50 +14,62 @@ namespace Z.Workflows.Components
 {
     public class WorkflowComponent : IWorkflowComponent
     {
-        private IWorkflowUnitOfWork _uow;
+        public IWorkflowUnitOfWork Context { get; private set; }
 
-        public WorkflowComponent(IWorkflowUnitOfWork uow)
+        public WorkflowComponent(IWorkflowUnitOfWork context)
         {
-            Require(_uow = uow, "WorkflowUnitOfWork");
+            Require(Context = context, "WorkflowUnitOfWork");
         }
 
         public void Start(Workflow workflow, Entity entity)
         {
-            var stateInitialState = workflow.GetInitialState();
+            var initialState = workflow.GetInitialState();
+
+            // todo: check for existing item
 
             var item = new Item();
+            item.WorkflowId = workflow.Id;
+            item.StateId = initialState.Id;
             item.EntityId = entity.Id;
-            item.State = stateInitialState.Name;
+            // todo: item.Date = ???
+            item.State = initialState.Name;
 
-            _uow.Items.Add(item);
+            Context.Items.Add(item);
 
             AddHistory(item);
+
+            // Context.SaveChanges();
         }
 
-        public void Action(Workflow workflow, Entity entity, string action)
+        public void Action(Workflow workflow, Entity entity, string action, DateTime? triggerDate = null)
         {
             var item = GetItemByEntityId(entity.Id);
             var nextState = workflow.GetNextState(item.State, action);
 
             item.State = nextState.Name;
+            item.TriggerDate = triggerDate ?? DateTime.MaxValue;
 
             if (nextState.IsFinalState)
             {
-                _uow.Items.Delete(item);
+                Context.Items.Delete(item);
             }
             else
             {
-                _uow.Items.Update(item);
+                Context.Items.Update(item);
             }
 
             AddHistory(item);
+
+            // Context.SaveChanges();
         }
 
         private Item GetItemByEntityId(Guid entityId)
         {
             try
             {
-                var item = _uow.Items.Query().Single(i => i.EntityId == entityId);
+                var item = Context.Items
+                    .Query()
+                    .Single(i => i.EntityId == entityId);
 
                 return item;
             }
@@ -74,12 +87,41 @@ namespace Z.Workflows.Components
             history.State = item.State;
             history.TimeStamp = DateTime.UtcNow;
 
-            _uow.History.Add(history);
+            Context.History.Add(history);
         }
 
         public int ItemsInState(string state)
         {
-            return _uow.Items.Query().Count(i => i.State == state);
+            return Context.Items
+                .Query()
+                .Count(i => i.State == state);
+        }
+
+        public IEnumerable<Workflow> GetWorkflows()
+        {
+            return Context.Workflows
+                .Query()
+                .ToList();
+        }
+
+        public Workflow GetWorkflow(string name)
+        {
+            return Context.Workflows
+                .Query()
+                .First(w => w.Name == name);
+        }
+
+        public IEnumerable<Summary> GetSummary(Guid workflowId, DateTime fromDate, DateTime toDate)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IEnumerable<History> GetItemHistory(Guid itemId)
+        {
+            return Context.History
+                .Query()
+                .Where(h => h.ItemId == itemId)
+                .OrderBy(h => h.TimeStamp).ToList();
         }
     }
 }

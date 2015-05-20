@@ -43,15 +43,18 @@
     <Compile Include="Components\WorkflowComponent.cs" />
     <Compile Include="Exceptions\ActionNotFoundException.cs" />
     <Compile Include="Exceptions\InitialStateNotFoundException.cs" />
+    <Compile Include="Exceptions\ItemAlreadyExistsException.cs" />
     <Compile Include="Exceptions\ItemNotFoundException.cs" />
     <Compile Include="Exceptions\StateNotFoundException.cs" />
     <Compile Include="Fakes\FakeWorkflowUnitOfWork.cs" />
     <Compile Include="Interfaces\IWorkflowComponent.cs" />
+    <Compile Include="Interfaces\IWorkflowConfiguration.cs" />
     <Compile Include="Interfaces\IWorkflowUnitOfWork.cs" />
     <Compile Include="Models\History.cs" />
     <Compile Include="Models\Item.cs" />
     <Compile Include="Models\Route.cs" />
     <Compile Include="Models\State.cs" />
+    <Compile Include="Models\Summary.cs" />
     <Compile Include="Models\Workflow.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

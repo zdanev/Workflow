@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="Fakes\FakeRepository.cs" />
     <Compile Include="Fakes\FakeUnitOfWork.cs" />
+    <Compile Include="Interfaces\IConfiguration.cs" />
     <Compile Include="Interfaces\IRepository.cs" />
     <Compile Include="Interfaces\IUnitOfWork.cs" />
     <Compile Include="Models\Entity.cs" />

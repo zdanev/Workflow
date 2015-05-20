@@ -8,8 +8,11 @@ namespace Z.Workflows.Fakes
 {
     public class FakeWorkflowUnitOfWork : FakeUnitOfWork, IWorkflowUnitOfWork
     {
+        private readonly IRepository<Workflow> _workflows = new FakeRepository<Workflow>();
         private readonly IRepository<Item> _items = new FakeRepository<Item>();
         private readonly IRepository<History> _history = new FakeRepository<History>();
+
+        public IRepository<Workflow> Workflows { get { return _workflows; } }
 
         public IRepository<Item> Items { get { return _items; } }
 
